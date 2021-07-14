@@ -9,8 +9,8 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body {
-    background-color: #D9E6F6;
     font-family: sans-serif;
+    background: #D9E6F6 url("https://images-na.ssl-images-amazon.com/images/I/818WdHeVbOL._AC_SL1200_.jpg") no-repeat center center;
   }
 
   #__next {
