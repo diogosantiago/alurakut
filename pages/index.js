@@ -1,8 +1,10 @@
 import MainGrid from "../src/components/MainGrid"
 import Box from "../src/components/Box"
+import jwt from "jsonwebtoken"
 import {AlurakutMenu, AlurakutProfileSidebarMenuDefault, OrkutNostalgicIconSet} from "../src/lib/AlurakutCommons"
 import { useEffect, useState } from "react";
 import BoxWrapper from "../src/components/BoxWrapper";
+import nookies from 'nookies'
 
 function ProfileSideBar(props){
   return (
@@ -17,8 +19,8 @@ function ProfileSideBar(props){
     </Box>);
 }
 
-export default function Home() {
-  const githubUser = "diogosantiago"; // omariosouto jujunegreiros peas
+export default function Home({githubUser}) {
+  // const githubUser = "diogosantiago"; // omariosouto jujunegreiros peas
   const [pessoasFavoritas, setPessoasFavoritas] = useState([])
   const [comunidades, setComunidades] = useState([])
   // const [comunidades, setComunidades] = useState([
@@ -34,10 +36,12 @@ export default function Home() {
       return response.json();
     }).then(data => {
       // const pessoas = data.map(elemento => elemento.login )
-      const pessoas = data.map(elemento => {
-        return {id: elemento.login, title: elemento.login, image: `https://github.com/${elemento.login}.png`, link: elemento.html_url};
-      } );
-      setPessoasFavoritas(pessoas);
+      if(data.length){
+        const pessoas = data.map(elemento => {
+          return {id: elemento.login, title: elemento.login, image: `https://github.com/${elemento.login}.png`, link: elemento.html_url};
+        } );
+        setPessoasFavoritas(pessoas);
+      }
     });
 
     // API DATO GraphQL
@@ -123,5 +127,38 @@ export default function Home() {
       </MainGrid>
     </>
   )
-  
+
+}
+
+export async function getServerSideProps(context){
+  const token = nookies.get(context).USER_TOKEN;
+  console.log(token)
+
+  const { isAuthenticated } = await fetch('https://alurakut.vercel.app/api/auth', {
+    headers: {
+      Authorization: token
+    }
+  })
+  .then(resposta => resposta.json() )
+  console.log(isAuthenticated);
+
+  if(!isAuthenticated){
+    console.log("aqui");
+    return {
+      redirect: {
+        destination: "/login?authorized=false",
+        permanent: false
+      }
+    }
+  }
+
+  console.log(jwt.decode(token));
+  const { githubUser } = jwt.decode(token);
+  console.log(githubUser);
+
+  return {
+    props: {
+      githubUser
+    }
+  }
 }
